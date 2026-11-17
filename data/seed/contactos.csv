@@ -1,0 +1,31 @@
+name,is_company,email,phone,city,country_id/id,customer_rank,supplier_rank
+"Distribuidora Istmo, S.A.",True,distribuidoraistmosa@ejemplo.com,+507 6754-2824,Panamá,base.pa,0,1
+"Importadora del Canal, S.A.",True,importadoradelcanals@ejemplo.com,+507 6859-5506,San Miguelito,base.pa,0,1
+"Suministros Chiriquí, S.A.",True,suministroschiriquís@ejemplo.com,+507 6328-3286,Santiago,base.pa,0,1
+"Comercial Azuero, S.A.",True,comercialazuerosa@ejemplo.com,+507 6204-9935,Panamá,base.pa,0,1
+"Tecnología Pacífico, S.A.",True,tecnologíapacíficosa@ejemplo.com,+507 6704-7912,Panamá,base.pa,0,1
+"Papelera Central, S.A.",True,papeleracentralsa@ejemplo.com,+507 6130-2535,San Miguelito,base.pa,0,1
+"Químicos del Atlántico, S.A.",True,químicosdelatlántico@ejemplo.com,+507 6338-9279,David,base.pa,0,1
+"Alimentos Bocas, S.A.",True,alimentosbocassa@ejemplo.com,+507 6127-4257,Santiago,base.pa,0,1
+"Ferretera Veraguas, S.A.",True,ferreteraveraguassa@ejemplo.com,+507 6765-9928,Colón,base.pa,0,1
+"Logística Darién, S.A.",True,logísticadariénsa@ejemplo.com,+507 6325-8359,David,base.pa,0,1
+Supermercado La Esquina,True,supermercadolaesquin@ejemplo.com,+507 6384-1106,Chitré,base.pa,1,0
+Farmacia Bienestar,True,farmaciabienestar@ejemplo.com,+507 6925-3615,Santiago,base.pa,1,0
+Hotel Bahía Azul,True,hotelbahíaazul@ejemplo.com,+507 6532-6574,La Chorrera,base.pa,1,0
+Colegio San Marcos,True,colegiosanmarcos@ejemplo.com,+507 6259-4527,Chitré,base.pa,1,0
+Clínica Santa Fe,True,clínicasantafe@ejemplo.com,+507 6444-2674,Panamá,base.pa,1,0
+Restaurante El Fogón,True,restauranteelfogón@ejemplo.com,+507 6489-2584,La Chorrera,base.pa,1,0
+Constructora Horizonte,True,constructorahorizont@ejemplo.com,+507 6967-6635,David,base.pa,1,0
+Oficinas Punta Pacífica,True,oficinaspuntapacífic@ejemplo.com,+507 6370-1711,Santiago,base.pa,1,0
+Minisuper Don Pepe,True,minisuperdonpepe@ejemplo.com,+507 6570-9785,Panamá,base.pa,1,0
+Gimnasio Fuerza Total,True,gimnasiofuerzatotal@ejemplo.com,+507 6487-2291,David,base.pa,1,0
+Cafetería Aroma,True,cafeteríaaroma@ejemplo.com,+507 6400-6925,David,base.pa,1,0
+Taller Mecánico Rápido,True,tallermecánicorápido@ejemplo.com,+507 6296-2139,Panamá,base.pa,1,0
+Ana Castillo,False,anacastillo@ejemplo.com,+507 6777-4733,Chitré,base.pa,1,0
+Luis Herrera,False,luisherrera@ejemplo.com,+507 6396-2307,Chitré,base.pa,1,0
+María Pinzón,False,maríapinzón@ejemplo.com,+507 6338-2654,Colón,base.pa,1,0
+Carlos Batista,False,carlosbatista@ejemplo.com,+507 6384-8428,Santiago,base.pa,1,0
+Sofía Méndez,False,sofíaméndez@ejemplo.com,+507 6954-6977,San Miguelito,base.pa,1,0
+Jorge Quintero,False,jorgequintero@ejemplo.com,+507 6479-6820,San Miguelito,base.pa,1,0
+Valeria Rodríguez,False,valeriarodríguez@ejemplo.com,+507 6786-5374,Santiago,base.pa,1,0
+Diego Samudio,False,diegosamudio@ejemplo.com,+507 6799-2169,David,base.pa,1,0

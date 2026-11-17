@@ -1,0 +1,51 @@
+default_code,name,categ_id,type,is_storable,standard_price,list_price
+P001,Mouse inalámbrico,Electrónica,consu,True,51.35,73.79
+P002,Teclado USB,Electrónica,consu,True,20.72,29.25
+P003,Audífonos,Electrónica,consu,True,22.69,35.71
+P004,Cargador USB-C,Electrónica,consu,True,55.52,73.67
+P005,Cable HDMI,Electrónica,consu,True,26.96,40.95
+P006,Memoria USB 64 GB,Electrónica,consu,True,5.89,9.06
+P007,Router Wi-Fi,Electrónica,consu,True,64.7,89.96
+P008,Webcam HD,Electrónica,consu,True,6.7,10.52
+P009,Parlante Bluetooth,Electrónica,consu,True,46.02,69.09
+P010,Batería externa,Electrónica,consu,True,18.19,25.92
+P011,Resma de papel carta,Oficina,consu,True,70.95,104.65
+P012,Bolígrafos azules (caja),Oficina,consu,True,12.72,16.52
+P013,Folder manila (paquete),Oficina,consu,True,59.98,86.29
+P014,Grapadora,Oficina,consu,True,60.14,84.19
+P015,Cinta adhesiva,Oficina,consu,True,47.31,65.13
+P016,Marcadores de pizarra,Oficina,consu,True,79.79,103.6
+P017,Libreta rayada,Oficina,consu,True,40.24,60.94
+P018,Calculadora,Oficina,consu,True,69.1,90.07
+P019,Archivador,Oficina,consu,True,14.06,20.92
+P020,Post-it,Oficina,consu,True,48.32,66.91
+P021,Detergente líquido,Limpieza,consu,True,48.28,68.26
+P022,Cloro (galón),Limpieza,consu,True,21.24,30.66
+P023,Desinfectante,Limpieza,consu,True,75.48,112.32
+P024,Papel toalla,Limpieza,consu,True,10.49,16.36
+P025,Papel higiénico (paquete),Limpieza,consu,True,60.44,91.81
+P026,Escoba,Limpieza,consu,True,28.2,38.15
+P027,Trapeador,Limpieza,consu,True,13.92,17.42
+P028,Bolsas de basura,Limpieza,consu,True,58.18,87.38
+P029,Jabón de manos,Limpieza,consu,True,77.79,117.98
+P030,Guantes de limpieza,Limpieza,consu,True,41.35,53.23
+P031,Café molido,Alimentos,consu,True,50.59,78.14
+P032,Azúcar (2 kg),Alimentos,consu,True,41.35,54.57
+P033,Arroz (5 lb),Alimentos,consu,True,30.85,40.31
+P034,Aceite vegetal,Alimentos,consu,True,76.35,120.09
+P035,Agua embotellada (paquete),Alimentos,consu,True,73.6,107.43
+P036,Galletas surtidas,Alimentos,consu,True,39.86,51.39
+P037,Leche en polvo,Alimentos,consu,True,29.99,47.83
+P038,Atún enlatado,Alimentos,consu,True,64.83,86.47
+P039,Pasta,Alimentos,consu,True,20.41,29.57
+P040,Té en bolsitas,Alimentos,consu,True,7.68,11.57
+P041,Martillo,Ferretería,consu,True,65.56,104.39
+P042,Destornillador,Ferretería,consu,True,43.32,56.06
+P043,Cinta métrica,Ferretería,consu,True,53.29,84.27
+P044,Tornillos (caja),Ferretería,consu,True,14.46,20.75
+P045,Taladro,Ferretería,consu,True,49.12,77.98
+P046,Pintura blanca (galón),Ferretería,consu,True,74.42,112.7
+P047,Brocha,Ferretería,consu,True,55.65,83.45
+P048,Candado,Ferretería,consu,True,32.82,48.74
+P049,Extensión eléctrica,Ferretería,consu,True,30.81,48.21
+P050,Bombillo LED,Ferretería,consu,True,36.94,49.38
