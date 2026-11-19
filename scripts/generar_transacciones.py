@@ -1,7 +1,8 @@
-"""Genera transacciones ficticias en Odoo a través de la API JSON-2."""
+"""Genera seis meses de transacciones ficticias en Odoo a través de la API JSON-2."""
 import os
+import sys
 import random
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import requests
 from dotenv import load_dotenv
@@ -12,7 +13,10 @@ HEADERS = {
     "Authorization": f"bearer {os.environ['ODOO_API_KEY']}",
     "X-Odoo-Database": os.environ["ODOO_DB"],
 }
-random.seed(42)
+
+VENTAS_POR_MES = {6: 15, 7: 18, 8: 20, 9: 22, 10: 25, 11: 14}  # tendencia creciente
+COMPRAS_POR_MES = 5
+HOY = datetime(2026, 11, 18, 12, 0)  # ninguna fecha generada puede pasar de aquí
 
 
 def llamar(modelo, metodo, **parametros):
@@ -34,7 +38,6 @@ PRODUCTOS = llamar("product.product", "search_read",
                    fields=["id"], order="id asc")
 ALMACENES = llamar("stock.warehouse", "search_read",
                    domain=[], fields=["id", "code", "in_type_id"], order="id asc")
-ALMACEN_CENTRAL = next(a["id"] for a in ALMACENES if a["code"] == "CEN")
 
 
 def fechar_movimientos(pickings, fecha):
@@ -50,68 +53,6 @@ def fechar_movimientos(pickings, fecha):
     llamar("stock.move.line", "write", ids=lineas, vals={"date": texto})
 
 
-def crear_venta(referencia, fecha):
-    """Crea y confirma una venta; si la referencia ya existe, no hace nada (idempotencia)."""
-    existentes = llamar("sale.order", "search", domain=[["client_order_ref", "=", referencia]])
-    if existentes:
-        print(f"{referencia}: ya existe, se omite")
-        return existentes[0]
-
-    productos = random.sample(PRODUCTOS, random.randint(1, 4))
-    lineas = [[0, 0, {"product_id": p["id"], "product_uom_qty": random.randint(1, 5)}]
-              for p in productos]
-    ids = llamar("sale.order", "create", vals_list=[{
-        "partner_id": random.choice(CLIENTES)["id"],
-        "client_order_ref": referencia,
-        "warehouse_id": ALMACEN_CENTRAL,
-        "order_line": lineas,
-    }])
-    llamar("sale.order", "action_confirm", ids=ids)
-    llamar("sale.order", "write", ids=ids,
-           vals={"date_order": fecha.strftime("%Y-%m-%d %H:%M:%S")})
-    print(f"{referencia}: creado con id {ids[0]}")
-    return ids[0]
-
-
-def facturar_venta(venta_id, fecha):
-    """Factura una venta confirmada y publica la factura con la fecha indicada."""
-    venta = llamar("sale.order", "read", ids=[venta_id], fields=["name", "invoice_ids"])[0]
-    if venta["invoice_ids"]:
-        print(f"{venta['name']}: ya está facturada, se omite")
-        return venta["invoice_ids"]
-
-    asistente = llamar("sale.advance.payment.inv", "create", vals_list=[{
-        "advance_payment_method": "delivered",
-        "sale_order_ids": [[6, 0, [venta_id]]],
-    }])
-    llamar("sale.advance.payment.inv", "create_invoices", ids=asistente)
-    facturas = llamar("sale.order", "read", ids=[venta_id], fields=["invoice_ids"])[0]["invoice_ids"]
-    llamar("account.move", "write", ids=facturas, vals={"invoice_date": fecha.strftime("%Y-%m-%d")})
-    llamar("account.move", "action_post", ids=facturas)
-    print(f"{venta['name']}: facturada")
-    return facturas
-
-def entregar_venta(venta_id, fecha):
-    """Reserva stock y valida la entrega de una venta; si no hay stock suficiente, la deja pendiente."""
-    venta = llamar("sale.order", "read", ids=[venta_id], fields=["name", "picking_ids"])[0]
-    pendientes = [p["id"] for p in llamar("stock.picking", "read", ids=venta["picking_ids"],
-                                          fields=["state"]) if p["state"] not in ("done", "cancel")]
-    if not pendientes:
-        print(f"{venta['name']}: ya está entregada, se omite")
-        return
-
-    llamar("stock.picking", "action_assign", ids=pendientes)  # botón "Comprobar disponibilidad"
-    for entrega in llamar("stock.picking", "read", ids=pendientes, fields=["name", "state"]):
-        if entrega["state"] != "assigned":
-            print(f"{venta['name']}: {entrega['name']} sin stock suficiente, queda pendiente")
-            continue
-        resultado = llamar("stock.picking", "button_validate", ids=[entrega["id"]])
-        if resultado is not True:
-            print(f"{venta['name']}: {entrega['name']} pidió confirmación extra: {resultado}")
-            continue
-        fechar_movimientos([entrega["id"]], fecha)
-        print(f"{venta['name']}: {entrega['name']} entregada")
-
 def crear_compra(referencia, fecha, almacen):
     """Crea, confirma y recibe una compra en el almacén indicado, con la fecha indicada."""
     existentes = llamar("purchase.order", "search", domain=[["partner_ref", "=", referencia]])
@@ -119,11 +60,12 @@ def crear_compra(referencia, fecha, almacen):
         print(f"{referencia}: ya existe, se omite")
         return existentes[0]
 
-    productos = random.sample(PRODUCTOS, random.randint(3, 6))
-    lineas = [[0, 0, {"product_id": p["id"], "product_qty": random.randint(20, 60)}]
+    azar = random.Random(referencia)  # el mismo pedido sale igual en cada ejecución
+    productos = azar.sample(PRODUCTOS, azar.randint(3, 6))
+    lineas = [[0, 0, {"product_id": p["id"], "product_qty": azar.randint(20, 60)}]
               for p in productos]
     ids = llamar("purchase.order", "create", vals_list=[{
-        "partner_id": random.choice(PROVEEDORES)["id"],
+        "partner_id": azar.choice(PROVEEDORES)["id"],
         "partner_ref": referencia,
         "picking_type_id": almacen["in_type_id"][0],
         "order_line": lineas,
@@ -137,11 +79,118 @@ def crear_compra(referencia, fecha, almacen):
     resultado = llamar("stock.picking", "button_validate", ids=recepciones)
     if resultado is not True:
         print(f"{referencia}: la recepción pidió confirmación extra: {resultado}")
-    fechar_movimientos(recepciones, fecha)  # NUEVO: la recepción toma la fecha de la compra
-    print(f"{referencia}: compra creada y recibida en {almacen['code']}")
+    fechar_movimientos(recepciones, fecha)
+    print(f"{referencia}: compra recibida en {almacen['code']} ({fecha:%Y-%m-%d})")
     return ids[0]
 
 
+def crear_venta(referencia, fecha, almacen):
+    """Crea y confirma una venta desde el almacén indicado; si ya existe, no hace nada."""
+    existentes = llamar("sale.order", "search", domain=[["client_order_ref", "=", referencia]])
+    if existentes:
+        print(f"{referencia}: ya existe, se omite")
+        return existentes[0]
+
+    azar = random.Random(referencia)
+    productos = azar.sample(PRODUCTOS, azar.randint(1, 4))
+    lineas = [[0, 0, {"product_id": p["id"], "product_uom_qty": azar.randint(1, 5)}]
+              for p in productos]
+    ids = llamar("sale.order", "create", vals_list=[{
+        "partner_id": azar.choice(CLIENTES)["id"],
+        "client_order_ref": referencia,
+        "warehouse_id": almacen["id"],
+        "order_line": lineas,
+    }])
+    llamar("sale.order", "action_confirm", ids=ids)
+    llamar("sale.order", "write", ids=ids,
+           vals={"date_order": fecha.strftime("%Y-%m-%d %H:%M:%S")})
+    print(f"{referencia}: venta desde {almacen['code']} ({fecha:%Y-%m-%d})")
+    return ids[0]
+
+
+def entregar_venta(venta_id, fecha):
+    """Reserva stock y valida la entrega; si no hay stock suficiente, la deja pendiente."""
+    venta = llamar("sale.order", "read", ids=[venta_id], fields=["name", "picking_ids"])[0]
+    pendientes = [p["id"] for p in llamar("stock.picking", "read", ids=venta["picking_ids"],
+                                          fields=["state"]) if p["state"] not in ("done", "cancel")]
+    if not pendientes:
+        return
+    llamar("stock.picking", "action_assign", ids=pendientes)
+    for entrega in llamar("stock.picking", "read", ids=pendientes, fields=["name", "state"]):
+        if entrega["state"] != "assigned":
+            print(f"  {entrega['name']}: sin stock suficiente, queda pendiente")
+            continue
+        resultado = llamar("stock.picking", "button_validate", ids=[entrega["id"]])
+        if resultado is not True:
+            print(f"  {entrega['name']}: pidió confirmación extra: {resultado}")
+            continue
+        fechar_movimientos([entrega["id"]], fecha)
+
+
+def facturar_venta(venta_id, fecha):
+    """Factura una venta confirmada y publica la factura con la fecha indicada."""
+    venta = llamar("sale.order", "read", ids=[venta_id], fields=["name", "invoice_ids"])[0]
+    if venta["invoice_ids"]:
+        return venta["invoice_ids"]
+    asistente = llamar("sale.advance.payment.inv", "create", vals_list=[{
+        "advance_payment_method": "delivered",
+        "sale_order_ids": [[6, 0, [venta_id]]],
+    }])
+    llamar("sale.advance.payment.inv", "create_invoices", ids=asistente)
+    facturas = llamar("sale.order", "read", ids=[venta_id], fields=["invoice_ids"])[0]["invoice_ids"]
+    llamar("account.move", "write", ids=facturas, vals={"invoice_date": fecha.strftime("%Y-%m-%d")})
+    llamar("account.move", "action_post", ids=facturas)
+    return facturas
+
+def procesar_entregas_parciales():
+    """Entrega lo disponible en las entregas que quedaron a medias y deja el resto en un backorder."""
+    entregas = llamar("stock.picking", "search_read",
+                      domain=[["picking_type_code", "=", "outgoing"],
+                              ["state", "=", "assigned"],
+                              ["sale_id.client_order_ref", "like", "SEED-%"]],
+                      fields=["id", "name", "sale_id"], order="id asc")
+    print(f"Entregas parciales por procesar: {len(entregas)}")
+    for entrega in entregas:
+        venta = llamar("sale.order", "read", ids=[entrega["sale_id"][0]], fields=["date_order"])[0]
+        fecha = min(datetime.strptime(venta["date_order"], "%Y-%m-%d %H:%M:%S") + timedelta(days=1), HOY)
+
+        resultado = llamar("stock.picking", "button_validate", ids=[entrega["id"]])
+        if resultado is not True:
+            # Odoo pregunta "¿Crear orden parcial?": respondemos que sí, igual que en pantalla
+            contexto = resultado["context"]
+            asistente = llamar("stock.backorder.confirmation", "create", vals_list=[{}], context=contexto)
+            llamar("stock.backorder.confirmation", "process", ids=asistente, context=contexto)
+        fechar_movimientos([entrega["id"]], fecha)
+        print(f"{entrega['name']}: entregado lo disponible; el resto queda en backorder")
+
+def planificar():
+    """Arma la lista de eventos (compras y ventas) de junio a noviembre, ordenada por fecha."""
+    azar = random.Random(2026)
+    eventos = []
+    n_compra = n_venta = 0
+    for mes, n_ventas in VENTAS_POR_MES.items():
+        ultimo_dia = 17 if mes == 11 else 28
+        for i in range(COMPRAS_POR_MES):
+            n_compra += 1
+            fecha = datetime(2026, mes, azar.randint(1, 5), azar.randint(13, 21), azar.randint(0, 59))
+            eventos.append((fecha, "compra", f"SEED-C-{n_compra:04d}", ALMACENES[i % len(ALMACENES)]))
+        for _ in range(n_ventas):
+            n_venta += 1
+            fecha = datetime(2026, mes, azar.randint(6, ultimo_dia), azar.randint(13, 21), azar.randint(0, 59))
+            eventos.append((fecha, "venta", f"SEED-V-{n_venta:04d}", azar.choice(ALMACENES)))
+    eventos.sort(key=lambda evento: evento[0])  # orden cronológico: el stock llega antes de venderse
+    return eventos
+
+
 if __name__ == "__main__":
-    venta = llamar("sale.order", "search", domain=[["client_order_ref", "=", "SEED-TEST-0001"]])[0]
-    entregar_venta(venta, datetime(2026, 8, 16, 15, 0))
+    if len(sys.argv) > 1 and sys.argv[1] == "parciales":
+        procesar_entregas_parciales()
+    else:
+        for fecha, tipo, referencia, almacen in planificar():
+            if tipo == "compra":
+                crear_compra(referencia, fecha, almacen)
+            else:
+                venta = crear_venta(referencia, fecha, almacen)
+                entregar_venta(venta, min(fecha + timedelta(days=1), HOY))
+                facturar_venta(venta, min(fecha + timedelta(days=random.Random(referencia).randint(0, 2)), HOY))
+        print("Generación terminada")
